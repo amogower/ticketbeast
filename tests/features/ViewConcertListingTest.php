@@ -9,12 +9,11 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 class ViewConcertListingTest extends TestCase
 {
     use DatabaseMigrations;
+
     /** @test */
-    function user_can_view_concert_listing()
+    function user_can_view_a_published_concert_listing()
     {
-        // Arrange
-        // Create a concert
-        $concert = Concert::create([
+        $concert = factory(Concert::class)->states('published')->create([
             'title' => 'Future',
             'subtitle' => 'with Young Thug',
             'date' => Carbon::parse('March 15, 2017 8:00pm'),
@@ -26,12 +25,8 @@ class ViewConcertListingTest extends TestCase
             'additional_information' => 'For tickets, call (020) 7430 2345.'
         ]);
 
-        // Act
-        // View the concert listing
         $this->visit('/concerts/' . $concert->id);
 
-        // Assert
-        // See the concert details
         $this->see('Future');
         $this->see('with Young Thug');
         $this->see('March 15, 2017');
@@ -42,5 +37,15 @@ class ViewConcertListingTest extends TestCase
         $this->see('London');
         $this->see('SW12 3BH');
         $this->see('For tickets, call (020) 7430 2345.');
+    }
+
+    /** @test */
+    function user_cannot_view_unpublished_concert_listings()
+    {
+        $concert = factory(Concert::class)->states('unpublished')->create();
+
+        $this->get('/concerts/' . $concert->id);
+
+        $this->assertResponseStatus(404);
     }
 }
